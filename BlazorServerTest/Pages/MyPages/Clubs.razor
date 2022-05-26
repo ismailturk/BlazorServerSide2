@@ -1,0 +1,101 @@
+﻿@page "/Data/Clubs"
+
+@using DataAccessLibrary
+@using DataAccessLibrary.Models
+@using Microsoft.AspNetCore.SignalR.Client;
+@inject NavigationManager NavManager
+@implements IAsyncDisposable
+
+
+
+@inject IClubsData db
+
+
+<h1>Clubs Page</h1>
+<div class="form-group"
+</div>
+
+<button @onclick="Show" disabled="@(!isConnected)">Show</button>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Club Name</th>
+            <th>Foundation Date</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (models != null)
+            @foreach (var clubs in models)
+            {
+                <tr>
+                    <td>@clubs.ClubName</td>
+                    <td>@clubs.FoundationDate</td>
+                </tr>
+            }
+    </tbody>
+</table>
+
+@code {
+    private HubConnection? hubConnection;
+    private List<ClubModel>? models;
+    private string? messageInput;
+    bool isclick = false;
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+
+
+        hubConnection = new HubConnectionBuilder()
+        .WithUrl(NavManager.ToAbsoluteUri("/clubhub"))
+        .WithAutomaticReconnect()
+        .Build();
+
+
+        hubConnection.On<ClubModelSignalR>("RecieveData", (data) =>
+        {
+            if (data is null)
+            {
+                throw new ArgumentNullException(nameof(data));
+            }
+            
+            models = data.Clubs;
+            InvokeAsync(StateHasChanged);
+
+        });
+
+        await hubConnection.StartAsync();
+    }
+    private async Task Show()
+    {
+        isclick = true;
+        if (hubConnection is not null)
+        {
+            var clubs = await db.GetClub();
+            ClubModelSignalR model = new ClubModelSignalR();
+            model.Clubs = clubs.ToList();
+            await hubConnection.SendAsync("ShowData", model);
+
+        }
+
+    }
+
+
+    public bool isConnected => hubConnection?.State == HubConnectionState.Connected;
+
+    public async ValueTask DisposeAsync()
+    {
+        if (hubConnection is not null)
+        {
+            await hubConnection.DisposeAsync();
+        }
+    }
+    }
+
+
+
+
+
+

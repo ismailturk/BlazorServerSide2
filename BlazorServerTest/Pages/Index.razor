@@ -1,0 +1,77 @@
+﻿@page "/"
+
+@using Microsoft.AspNetCore.SignalR.Client;  
+@inject NavigationManager Navmer
+@implements IAsyncDisposable
+
+
+<h3>DemoHub</h3>
+<div class="form-group">
+    <label>
+        User:<input @bind="userInput" />
+    </label>
+</div>
+<div class="form-group">
+    <label>
+        Message:<input @bind="messageInput" />
+    </label>
+</div>
+<button @onclick="Send" disabled ="@(!isConnected)">Send</button>
+<hr />
+<ul>
+    @foreach (string message in messages)
+    {
+        <li> @message</li>
+    }
+</ul>
+
+@code {
+    private HubConnection? hubConnection;
+    private List<string> messages = new();
+    private string? userInput;
+    private string? messageInput;
+
+
+
+    protected override  async Task OnInitializedAsync()
+    {
+
+        hubConnection = new HubConnectionBuilder()
+        .WithUrl(Navmer.ToAbsoluteUri("/demohub")) //program.cs in içine tanımladıgımız maphubdaki isimle aynı olmalı
+            .WithAutomaticReconnect()
+            .Build();
+
+        hubConnection.On<string, string>("ReceiveMessage", (user, message) =>
+        {
+            var formattedMessage = $"{user} : {message} ";
+            messages.Add(formattedMessage);
+            InvokeAsync(StateHasChanged);
+
+        });
+
+
+        await hubConnection.StartAsync();
+
+    }
+
+
+    private async Task Send()
+    {
+        if (hubConnection is not null)
+        {
+            await hubConnection.SendAsync("SendMessage", userInput, messageInput); //bu kısımda butonun onclickini tetikledik
+                                                                                   //ayrıca hubs dosyamısız içindeki demohub ın SendMessage adlı fonksiyonuna da buradan eriştik.isimler aynı olmalı
+        }
+    }
+    public bool isConnected => hubConnection?.State == HubConnectionState.Connected; //server ile bağlı mıyız onu test ettik butona yolladık
+
+
+    public async ValueTask DisposeAsync()
+    {
+        if (hubConnection is not null)
+        {
+            await hubConnection.DisposeAsync();
+        }
+    }
+
+}

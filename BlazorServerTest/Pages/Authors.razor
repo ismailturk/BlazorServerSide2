@@ -1,0 +1,14 @@
+﻿@page "/authors"
+@inject NavigationManager NavigationManager
+<h3>Authors</h3>
+<hr />
+<a href="/authors/authorsdetail">İsmail Türk normal page</a> @*href ile route işlemi*@
+<hr />
+<button class="btn btn-primary" @onclick="Navigate">Navigation</button> @*Navigation Manager ile route işlemi*@
+@code {
+
+     void Navigate()
+    {
+       NavigationManager.NavigateTo("counter");// navigatemanager adlı objeden navigateto metodunu çağırdık ve gitmesini istediğimiz pagein adını yazdık
+    }
+}

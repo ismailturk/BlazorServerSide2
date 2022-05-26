@@ -1,0 +1,31 @@
+﻿@page "/cache"
+@using DataAccessLibrary
+@using DataAccessLibrary.Models
+@inject CacheDataAccess data
+
+<PageTitle>Customer</PageTitle>
+
+<h1>Customer List</h1>
+
+@if(customers is not null)
+{
+    foreach (var c in customers)
+    {
+        <h3>@c.FirstName @c.LastName </h3>
+    }
+}
+else
+{
+    <h3>Loading...</h3>
+}
+
+@code {
+
+    List<CustomerModel> customers;
+
+    protected override async Task OnInitializedAsync()
+    {
+        customers = await data.GetCustomerCache();
+    }
+
+}

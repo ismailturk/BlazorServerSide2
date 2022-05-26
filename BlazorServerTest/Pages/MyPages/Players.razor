@@ -1,0 +1,93 @@
+﻿@page "/Data/Players"
+
+@using DataAccessLibrary
+@using DataAccessLibrary.Models
+@using BlazorServerTest.Models
+
+
+@inject IPlayersData _db
+
+
+<h1>Players Page</h1>
+<h4>Oyuncu Ekle:</h4>
+<EditForm Model="@newPlayer" OnValidSubmit="@InsertPlayer">
+    <DataAnnotationsValidator />
+<ValidationSummary />
+
+<InputText  id="firstname" @bind-Value="newPlayer.FirstName" placeholder="First Name" />
+<InputText id="lastname" @bind-Value="newPlayer.LastName" placeholder="Last Name" />
+<InputText id="age" @bind-Value="newPlayer.Age" placeholder="Age" />
+<InputText id="nationality" @bind-Value="newPlayer.Nationality" placeholder="Nationality" />
+
+<button type="submit" class="btn btn-primary">Ekle</button> 
+
+
+</EditForm>
+
+@if (players == null) 
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Age</th>
+                <th>Nationality</th>
+            </tr>
+        </thead>
+        <tbody>
+           @foreach (var players in players)
+           {
+               <tr>
+                   <td>@players.FirstName</td>
+                   <td>@players.LastName</td>
+                   <td>@players.Age</td>
+                   <td>@players.Nationality</td>
+
+               </tr>
+           }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<PlayerModel> players;
+    private DisplayPlayerModel newPlayer = new DisplayPlayerModel();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        players = await _db.GetPlayer();
+    }
+
+
+    private async Task InsertPlayer()
+    {
+        PlayerModel pModel = new PlayerModel
+            {
+
+
+                FirstName = newPlayer.FirstName,
+                LastName = newPlayer.LastName,
+                Age =  newPlayer.Age,
+                Nationality = newPlayer.Nationality,
+            };
+
+
+        await _db.InsertPlayer(pModel);
+        players.Add(pModel);
+        newPlayer = new DisplayPlayerModel();   
+
+
+    }
+
+    
+
+    
+}
+    
+

@@ -1,0 +1,66 @@
+﻿@page "/fetchdata"
+
+<PageTitle>Weather forecast</PageTitle>
+
+@using BlazorServerTest.Data
+@inject WeatherForecastService ForecastService
+
+<h1>Weather forecast</h1>
+
+   
+<button class="btn btn-primary" @onclick="boolCheck">Click</button>
+
+@if (forecasts == null)
+{
+     <br />
+    <p><em>Loading...</em></p>
+   
+}
+ else if (!isclick)
+{       
+    <br />
+      <p><em>Could not be clicked...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Temp. (C)</th>
+                <th>Temp. (F)</th>
+                <th>Summary</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var forecast in forecasts)
+            {
+                <tr>
+                    <td>@forecast.Date.ToShortDateString()</td>
+                    <td>@forecast.TemperatureC</td>
+                    <td>@forecast.TemperatureF</td>
+                    <td>@forecast.Summary</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private WeatherForecast[]? forecasts;
+    bool isclick = false;
+
+    void boolCheck()
+    {
+        isclick = true;
+        OnInitializedAsync();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+       
+        forecasts = await ForecastService.GetForecastAsync(DateTime.Now);
+        
+    }
+}
+ 
